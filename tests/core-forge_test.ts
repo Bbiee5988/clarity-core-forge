@@ -8,7 +8,7 @@ import {
 import { assertEquals } from 'https://deno.land/std@0.90.0/testing/asserts.ts';
 
 Clarinet.test({
-  name: "Ensure can create new app",
+  name: "Ensure can create new app with valid name",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const wallet_1 = accounts.get("wallet_1")!;
     
@@ -17,7 +17,7 @@ Clarinet.test({
         "core-forge",
         "create-app",
         [
-          types.ascii("My App"),
+          types.ascii("1MyApp"),
           types.utf8("App description")
         ],
         wallet_1.address
@@ -25,6 +25,27 @@ Clarinet.test({
     ]);
     
     assertEquals(block.receipts[0].result.expectOk(), "u1");
+  }
+});
+
+Clarinet.test({
+  name: "Ensure cannot create app with invalid name",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const wallet_1 = accounts.get("wallet_1")!;
+    
+    let block = chain.mineBlock([
+      Tx.contractCall(
+        "core-forge",
+        "create-app",
+        [
+          types.ascii(""),
+          types.utf8("App description")
+        ],
+        wallet_1.address
+      )
+    ]);
+    
+    assertEquals(block.receipts[0].result.expectErr(), "u103");
   }
 });
 
@@ -39,7 +60,7 @@ Clarinet.test({
         "core-forge", 
         "create-app",
         [
-          types.ascii("My App"),
+          types.ascii("1MyApp"),
           types.utf8("App description")
         ],
         wallet_1.address

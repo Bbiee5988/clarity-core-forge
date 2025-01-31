@@ -5,6 +5,7 @@
 (define-constant err-owner-only (err u100))
 (define-constant err-not-found (err u101))
 (define-constant err-already-exists (err u102))
+(define-constant err-invalid-name (err u103))
 
 ;; Data structures
 (define-map apps 
@@ -20,12 +21,27 @@
 
 (define-data-var next-app-id uint u1)
 
+;; Private functions
+(define-private (validate-name (name (string-ascii 64)))
+  (let
+    (
+      (name-length (len name))
+    )
+    (and
+      (> name-length u0)
+      (<= name-length u64)
+      (is-some (string-to-uint? (slice name 0 1)))
+    )
+  )
+)
+
 ;; Public functions
 (define-public (create-app (name (string-ascii 64)) (description (string-utf8 256)))
   (let
     (
       (app-id (var-get next-app-id))
     )
+    (asserts! (validate-name name) err-invalid-name)
     (asserts! (is-none (map-get? apps {app-id: app-id})) err-already-exists)
     (map-set apps
       {app-id: app-id}
